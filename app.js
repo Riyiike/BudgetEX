@@ -136,6 +136,7 @@ var UIController = (function () {
     },
     addListItem: function (obj, type) {
       var html, newHtml, element;
+
       //Create html strings with placeholder text
       if (type === 'inc') {
         element = DOMStrings.incomeContainer;
@@ -151,12 +152,21 @@ var UIController = (function () {
       newHtml = html.replace('%id%', obj.id);
       newHtml = newHtml.replace('%description%', obj.description);
       newHtml = newHtml.replace('%value%', obj.value);
+
       //Insert the HTML into the DOM
       document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
     },
 
+    deleteListItem: function (selectorID) {
+
+      var el = document.getElementById(selectorID);
+      el.parentNode.removeChild(el);
+
+    },
+
     clearFields: function () {
       var fields, fieldsArr;
+
       fields = document.querySelectorAll(
         DOMStrings.inputDescription + ',' + DOMStrings.inputValue
       );
@@ -194,6 +204,7 @@ var UIController = (function () {
 //GLOBAL APP CONTROLLER
 
 var controller = (function (budgetCtrl, UICtrl) {
+
   var allEventListeners = function () {
     var DOM = UICtrl.getDOMStrings();
 
@@ -209,45 +220,63 @@ var controller = (function (budgetCtrl, UICtrl) {
       .addEventListener('click', ctrlDeleteItem);
   };
 
+  //5a. Calculate and Update budget after adding item /deleting
+  var updateBudget = function () {
+
+    //1. Calculate the budget
+    budgetCtrl.calculateBudget();
+
+    //2. Return the budget
+    var budget = budgetCtrl.getBudget();
+
+    //3.Display the budget on the UI
+    UICtrl.displayBudget(budget);
+  };
+
   var ctrlAddItem = function () {
     var input, newItem;
+
     //1. Get the field input data:result of calling the getinput which is a public function
     input = UICtrl.getInput();
     if (input.description !== '' && !isNaN(input.value) && input.value > 0) {
+
       //2. Add the item to the budget controller
       newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+
       // 3. Add the item to the UI
       UICtrl.addListItem(newItem, input.type);
+
       //4. Clear the fields
       UICtrl.clearFields();
-      //5a. Calculate and Update budget
-      var updateBudget = function () {
-        //1. Calculate the budget
-        budgetCtrl.calculateBudget();
-        //2. Return the budget
-        var budget = budgetCtrl.getBudget();
-        //3.Display the budget on the UI
-        UICtrl.displayBudget(budget);
-      };
-      // 5b.
+
+      // 5b. calculate and update budget
       updateBudget();
     }
   };
+
   //whenever someone clicks the delete button
   var ctrlDeleteItem = function (event) {
     var itemID, splitID, type, ID;
-    ItemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+    itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
     if (itemID) {
+
       //inc-1
       splitID = itemID.split('-');
       type = splitID[0];
       ID = parseInt(splitID[1]);
+
       //1. Delete the item from the data structure
       budgetCtrl.deleteItem(type, ID);
+
       //2. Delete the item from the UI
+      UICtrl.deleteListItem(itemID);
 
       //3. Update and show the new budget
+      updateBudget();
     }
+
   };
 
   //we have to call the function above and make it public-hence we create an initialization function
