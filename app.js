@@ -173,6 +173,7 @@ var UIController = (function () {
     percentageLabel: '.budget__expenses--percentage',
     container: '.container',
     expensesPercLabel: '.item__percentage',
+    dateLabel: '.budget__title--month',
   };
 
   var formatNumber = function (num, type) {
@@ -301,6 +302,48 @@ var UIController = (function () {
     },
 
 
+    displayMonth: function () {
+      var now, dates, date, days, day, months, month, year;
+
+      now = new Date();
+      //var christmas = new Date(2016, 11, 25);
+
+      dates = [31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, ];
+      date = now.getDate();
+
+      days = new Array(7);
+      days[0] = "Sun";
+      days[1] = "Mon";
+      days[2] = "Tue";
+      days[3] = "Wed";
+      days[4] = "Thur";
+      days[5] = "Fri";
+      days[6] = "Sat";
+      day = now.getDay();
+
+      months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      month = now.getMonth();
+
+      year = now.getFullYear();
+      document.querySelector(DOMStrings.dateLabel).textContent = days[day] + " " + dates[date] + " " + months[month] + " " + year;
+    },
+
+
+    changedType: function () {
+
+      var fields = document.querySelectorAll(
+        DOMStrings.inputType + ',' +
+        DOMStrings.inputDescription + ',' +
+        DOMStrings.inputValue);
+
+      nodeListForEach(fields, function (cur) {
+        cur.classList.toggle('red-focus');
+      });
+
+      document.querySelector(DOMStrings.inputBtn).classList.toggle('red');
+
+    },
+
 
     //apply the get input method to the private variable in the global controller hence
     //we don't have to repeat the method but we can pass the object into the private function
@@ -313,6 +356,7 @@ var UIController = (function () {
 //GLOBAL APP CONTROLLER
 
 var controller = (function (budgetCtrl, UICtrl) {
+
   var allEventListeners = function () {
     var DOM = UICtrl.getDOMStrings();
 
@@ -323,9 +367,9 @@ var controller = (function (budgetCtrl, UICtrl) {
         ctrlAddItem();
       }
     });
-    document
-      .querySelector(DOM.container)
-      .addEventListener('click', ctrlDeleteItem);
+    document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+
+    document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changedType);
   };
 
   //5a. Calculate and Update budget after adding item /deleting
@@ -397,22 +441,26 @@ var controller = (function (budgetCtrl, UICtrl) {
 
       //3. Update and show the new budget
       updateBudget();
+
+      // 4. Calculate and update percentages
+      updatePercentages();
+
     }
   };
 
   //we have to call the function above and make it public-hence we create an initialization function
   return {
     init: function () {
-      console.log('started');
-      //set to zero at initialization
+      console.log('My Wallet.NG application is currently running');
+      UICtrl.displayMonth();
       UICtrl.displayBudget({
         budget: 0,
         totalInc: 0,
         totalExp: 0,
-        percentage: -1,
+        percentage: -1
       });
       allEventListeners();
-    },
+    }
   };
 })(budgetController, UIController);
 
